@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from django.views.decorators.http import require_POST
+from taggit.models import Tag
 
 from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
@@ -33,8 +34,12 @@ def post_share(request, post_id: int):
     return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
 
 
-def post_list(request):
+def post_list(request, tag_slug=None):
     all_posts = Post.published.all()
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        all_posts = all_posts.filter(tags__in=[tag])
     # Pagination with 3 posts per page
     paginator = Paginator(all_posts, 3)
     page_number = request.GET.get('page', 1)
@@ -46,7 +51,7 @@ def post_list(request):
     except EmptyPage:
         # If page_number is out of range, deliver the last page of results
         posts = paginator.page(paginator.num_pages)
-    return render(request, 'blog/post/list.html', {'posts': posts})
+    return render(request, 'blog/post/list.html', {'posts': posts, 'tag': tag})
 
 
 def post_detail(request, year: int, month: int, day: int, post: Post):
