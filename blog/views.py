@@ -71,7 +71,8 @@ def post_detail(request, year: int, month: int, day: int, post: Post):
     similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
     return render(request,
                   'blog/post/detail.html',
-                  {'post': post, 'form': form, 'similar_posts': similar_posts})
+                  {'post': post, 'form': form, 'similar_posts': similar_posts,
+                   "comments": comments})
 
 
 @require_POST
